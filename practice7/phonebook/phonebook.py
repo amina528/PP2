@@ -19,13 +19,22 @@ def create_table():
     conn.close()
 
 
-# Добавление контакта
+# Добавление одного контакта
 def insert_contact(name, phone):
     conn = connect()
     cur = conn.cursor()
-
     cur.execute("INSERT INTO contacts (name, phone) VALUES (%s, %s)", (name, phone))
+    conn.commit()
+    cur.close()
+    conn.close()
 
+
+# Добавление нескольких контактов за раз
+def insert_multiple_contacts(contacts):
+    conn = connect()
+    cur = conn.cursor()
+    for name, phone in contacts:
+        cur.execute("INSERT INTO contacts (name, phone) VALUES (%s, %s)", (name, phone))
     conn.commit()
     cur.close()
     conn.close()
@@ -35,36 +44,29 @@ def insert_contact(name, phone):
 def get_contacts():
     conn = connect()
     cur = conn.cursor()
-
     cur.execute("SELECT * FROM contacts")
     rows = cur.fetchall()
-
     for row in rows:
         print(row)
-
     cur.close()
     conn.close()
 
 
-# Обновление
+# Обновление контакта
 def update_contact(name, new_phone):
     conn = connect()
     cur = conn.cursor()
-
     cur.execute("UPDATE contacts SET phone=%s WHERE name=%s", (new_phone, name))
-
     conn.commit()
     cur.close()
     conn.close()
 
 
-# Удаление
+# Удаление контакта
 def delete_contact(name):
     conn = connect()
     cur = conn.cursor()
-
     cur.execute("DELETE FROM contacts WHERE name=%s", (name,))
-
     conn.commit()
     cur.close()
     conn.close()
@@ -74,14 +76,11 @@ def delete_contact(name):
 def import_from_csv():
     conn = connect()
     cur = conn.cursor()
-
     with open("contacts.csv", "r", encoding="utf-8") as file:
         reader = csv.reader(file)
         next(reader)  # пропускаем заголовок
-
         for row in reader:
             cur.execute("INSERT INTO contacts (name, phone) VALUES (%s, %s)", (row[0], row[1]))
-
     conn.commit()
     cur.close()
     conn.close()
@@ -90,9 +89,8 @@ def import_from_csv():
 # Меню
 def menu():
     create_table()
-
     while True:
-        print("\n1. Add contact")
+        print("\n1. Add contact(s)")
         print("2. Show contacts")
         print("3. Update contact")
         print("4. Delete contact")
@@ -102,9 +100,14 @@ def menu():
         choice = input("Choose: ")
 
         if choice == "1":
-            name = input("Name: ")
-            phone = input("Phone: ")
-            insert_contact(name, phone)
+            contacts = []
+            while True:
+                name = input("Name (или 'stop' для выхода): ")
+                if name.lower() == "stop":
+                    break
+                phone = input("Phone: ")
+                contacts.append((name, phone))
+            insert_multiple_contacts(contacts)
 
         elif choice == "2":
             get_contacts()
