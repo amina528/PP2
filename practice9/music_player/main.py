@@ -29,4 +29,7 @@ while running:
             if event.key == pygame.K_b:
                 player.back()
 
+            if event.key == pygame.K_q:   # ← добавили
+                running = False
+
 pygame.quit()
